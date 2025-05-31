@@ -3,8 +3,10 @@ package com.svarna.ecombe.controller;
 import com.svarna.ecombe.model.Product;
 import com.svarna.ecombe.service.ProductService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -25,9 +27,16 @@ public class ProductController {
         return new ResponseEntity<>(productService.getAllProducts(), HttpStatus.OK);
     }
 
-    @PostMapping("/products")
-    public ResponseEntity<Product> addProduct(@RequestBody Product product) {
-        return new ResponseEntity<>(productService.addProduct(product),  HttpStatus.CREATED);
+    @PostMapping("/product")
+    public ResponseEntity<?> addProduct(@RequestPart Product product, @RequestPart MultipartFile imageFile) {
+        try{
+            System.out.println(product);
+            Product newProduct = productService.addProduct(product, imageFile);
+            return new ResponseEntity<>(newProduct,  HttpStatus.CREATED);
+        }
+        catch(Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/product/{id}")
@@ -38,5 +47,16 @@ public class ProductController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(product, HttpStatus.OK);
+    }
+
+    @GetMapping("/product/{id}/image")
+    public ResponseEntity<byte[]> getProductImage(@PathVariable int id){
+        Product product = productService.getProductById(id);
+        byte[] imageFile = product.getImageData();
+
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.valueOf(product.getImageType()))
+                .body(imageFile);
     }
 }
