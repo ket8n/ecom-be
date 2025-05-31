@@ -30,5 +30,6 @@ public class Product {
     private String imageType;
 
     @Lob
+    @Basic(fetch = FetchType.LAZY)
     private byte[] imageData;
 }
